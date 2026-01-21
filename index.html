@@ -1,42 +1,54 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Yansıma Devri: Uyanış</title>
+    <title>Yansıma Devri: Operasyon</title>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
-        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; background: #000; font-family: 'Segoe UI', sans-serif; }
+        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; background: #000; font-family: 'Segoe UI', sans-serif; color: white; }
         
-        /* EKRAN KATMANLARI */
-        .screen { position: absolute; width: 100vw; height: 100vh; transition: opacity 0.5s; z-index: 10; display: none; }
-        .active { display: block; opacity: 1; }
+        .screen { position: absolute; width: 100vw; height: 100vh; display: none; overflow-y: auto; }
+        .active { display: block; }
 
-        /* 1. GİRİŞ EKRANI (Açılış Görseli Temalı) */
+        /* GİRİŞ EKRANI */
         #splash-screen {
-            background: url('https://raw.githubusercontent.com/queensho/yansima-devri-bot/main/splash_image.jpg') no-repeat center center;
+            background: url('splash_image.jpg') no-repeat center center;
             background-size: cover;
-            display: flex; flex-direction: column; align-items: center; justify-content: flex-end; padding-bottom: 50px;
+            display: flex; flex-direction: column; align-items: center; justify-content: flex-end; padding-bottom: 80px;
         }
+
         .start-btn {
-            background: #00ffd0; color: #000; border: none; padding: 15px 60px;
+            background: #00ffd0; color: #000; border: none; padding: 18px 80px;
             font-size: 24px; font-weight: bold; border-radius: 50px;
-            box-shadow: 0 0 20px #00ffd0; cursor: pointer; text-transform: uppercase;
+            box-shadow: 0 0 30px #00ffd0; cursor: pointer;
         }
 
-        /* 2. KARAKTER SEÇİM EKRANI */
-        #char-screen {
-            background: radial-gradient(circle, #1a1a1a 0%, #000 100%);
-            color: #fff; text-align: center; padding-top: 40px;
-        }
+        /* KARAKTER SEÇİMİ */
+        #char-screen { background: #0a0a0a; padding: 20px 10px; text-align: center; }
+        
+        .char-container { display: flex; flex-direction: column; gap: 20px; align-items: center; padding-bottom: 50px; }
+        
         .char-card {
-            border: 1px solid #0ff; margin: 20px; padding: 15px; background: rgba(0,255,255,0.1);
-            border-radius: 10px; cursor: pointer; transition: 0.3s;
+            width: 90%; background: #151515; border: 1px solid #333;
+            border-radius: 15px; overflow: hidden; transition: 0.3s;
         }
-        .char-card:hover { box-shadow: 0 0 15px #0ff; transform: scale(1.05); }
+        
+        .char-card:active { transform: scale(0.95); border-color: #00ffd0; }
 
-        /* 3. HARİTA EKRANI */
+        .char-img { width: 100%; height: 200px; object-fit: cover; border-bottom: 2px solid #00ffd0; }
+        
+        .char-info { padding: 15px; }
+        .char-name { font-size: 22px; color: #00ffd0; margin: 0; text-transform: uppercase; }
+        .char-stats { font-size: 14px; color: #aaa; margin: 10px 0; }
+        
+        .select-btn {
+            background: transparent; border: 1px solid #00ffd0; color: #00ffd0;
+            padding: 10px 30px; border-radius: 5px; cursor: pointer;
+        }
+
+        /* HARİTA */
         #map { width: 100%; height: 100%; filter: invert(100%) hue-rotate(180deg) brightness(0.7) contrast(1.4); }
     </style>
 </head>
@@ -47,14 +59,35 @@
     </div>
 
     <div id="char-screen" class="screen">
-        <h2 style="color: #0ff; text-shadow: 0 0 10px #0ff;">OPERATÖRÜNÜ SEÇ</h2>
-        <div class="char-card" onclick="selectChar('Hacker')">
-            <h3>SİBER-GÖLGE</h3>
-            <p>Sızma Hızı: %150 | Savunma: %80</p>
-        </div>
-        <div class="char-card" onclick="selectChar('Mercenary')">
-            <h3>DARBE OPERATÖRÜ</h3>
-            <p>Sızma Hızı: %90 | Savunma: %160</p>
+        <h1 style="color: #00ffd0; text-shadow: 0 0 10px #00ffd0;">OPERATÖRÜNÜ SEÇ</h1>
+        
+        <div class="char-container">
+            <div class="char-card" onclick="selectChar('Gezgin')">
+                <img src="char1.jpg" class="char-img" alt="Gezgin">
+                <div class="char-info">
+                    <p class="char-name">GEZGİN</p>
+                    <p class="char-stats">Hız: +%80 | Keşif: +%20 | Görüş: Geniş</p>
+                    <button class="select-btn">SEÇ</button>
+                </div>
+            </div>
+
+            <div class="char-card" onclick="selectChar('Hacker')">
+                <img src="char2.jpg" class="char-img" alt="Hacker">
+                <div class="char-info">
+                    <p class="char-name">SİBER-GÖLGE</p>
+                    <p class="char-stats">Sızma: +%50 | Görünmezlik: Aktif</p>
+                    <button class="select-btn">SEÇ</button>
+                </div>
+            </div>
+
+            <div class="char-card" onclick="selectChar('Mercenary')">
+                <img src="char3.jpg" class="char-img" alt="Mercenary">
+                <div class="char-info">
+                    <p class="char-name">DARBE OPERATÖRÜ</p>
+                    <p class="char-stats">Savunma: +%100 | Güç: +%40</p>
+                    <button class="select-btn">SEÇ</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -73,16 +106,17 @@
             if(id === 'map-screen') initMap();
         }
 
-        function selectChar(type) {
+        function selectChar(role) {
             tg.HapticFeedback.notificationOccurred('success');
-            alert(type + " seçildi. Avcılar sektörüne aktarılıyorsun...");
-            showScreen('map-screen');
+            tg.showConfirm(`${role} karakteriyle operasyona başlansın mı?`, (confirm) => {
+                if(confirm) showScreen('map-screen');
+            });
         }
 
         function initMap() {
             var map = L.map('map', { zoomControl: false }).setView([40.9800, 28.7175], 16);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-            L.marker([40.9805, 28.7160]).addTo(map).bindPopup("Enerji İstasyonu");
+            L.marker([40.9805, 28.7160]).addTo(map).bindPopup("Enerji Kaynağı");
         }
     </script>
 </body>
