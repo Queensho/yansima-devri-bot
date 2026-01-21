@@ -1,50 +1,89 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Yansıma Devri: Panel</title>
+    <title>Yansıma Devri: Uyanış</title>
+    <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
-        body { margin: 0; background: #000; overflow: hidden; }
-        #map { width: 100vw; height: 100vh; filter: invert(100%) hue-rotate(180deg) brightness(0.7) contrast(1.4); }
-        .ui-panel {
-            position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
-            z-index: 1000; background: rgba(0,255,255,0.1); border: 1px solid #0ff;
-            padding: 15px; border-radius: 10px; backdrop-filter: blur(5px);
-            color: #0ff; font-family: monospace; text-align: center; width: 80%;
+        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; background: #000; font-family: 'Segoe UI', sans-serif; }
+        
+        /* EKRAN KATMANLARI */
+        .screen { position: absolute; width: 100vw; height: 100vh; transition: opacity 0.5s; z-index: 10; display: none; }
+        .active { display: block; opacity: 1; }
+
+        /* 1. GİRİŞ EKRANI (Açılış Görseli Temalı) */
+        #splash-screen {
+            background: url('https://raw.githubusercontent.com/queensho/yansima-devri-bot/main/splash_image.jpg') no-repeat center center;
+            background-size: cover;
+            display: flex; flex-direction: column; align-items: center; justify-content: flex-end; padding-bottom: 50px;
         }
+        .start-btn {
+            background: #00ffd0; color: #000; border: none; padding: 15px 60px;
+            font-size: 24px; font-weight: bold; border-radius: 50px;
+            box-shadow: 0 0 20px #00ffd0; cursor: pointer; text-transform: uppercase;
+        }
+
+        /* 2. KARAKTER SEÇİM EKRANI */
+        #char-screen {
+            background: radial-gradient(circle, #1a1a1a 0%, #000 100%);
+            color: #fff; text-align: center; padding-top: 40px;
+        }
+        .char-card {
+            border: 1px solid #0ff; margin: 20px; padding: 15px; background: rgba(0,255,255,0.1);
+            border-radius: 10px; cursor: pointer; transition: 0.3s;
+        }
+        .char-card:hover { box-shadow: 0 0 15px #0ff; transform: scale(1.05); }
+
+        /* 3. HARİTA EKRANI */
+        #map { width: 100%; height: 100%; filter: invert(100%) hue-rotate(180deg) brightness(0.7) contrast(1.4); }
     </style>
 </head>
 <body>
-    <div id="map"></div>
-    <div class="ui-panel" id="info">HEDEF SEÇİLDİ: BEKLENİYOR...</div>
+
+    <div id="splash-screen" class="screen active">
+        <button class="start-btn" onclick="showScreen('char-screen')">START</button>
+    </div>
+
+    <div id="char-screen" class="screen">
+        <h2 style="color: #0ff; text-shadow: 0 0 10px #0ff;">OPERATÖRÜNÜ SEÇ</h2>
+        <div class="char-card" onclick="selectChar('Hacker')">
+            <h3>SİBER-GÖLGE</h3>
+            <p>Sızma Hızı: %150 | Savunma: %80</p>
+        </div>
+        <div class="char-card" onclick="selectChar('Mercenary')">
+            <h3>DARBE OPERATÖRÜ</h3>
+            <p>Sızma Hızı: %90 | Savunma: %160</p>
+        </div>
+    </div>
+
+    <div id="map-screen" class="screen">
+        <div id="map"></div>
+    </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        var map = L.map('map', { zoomControl: false }).setView([40.9800, 28.7175], 16);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+        function showScreen(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            if(id === 'map-screen') initMap();
+        }
 
-        const points = [
-            { lat: 40.9805, lng: 28.7160, icon: "➕", label: "MEDICANA ÜSSÜ" },
-            { lat: 40.9790, lng: 28.7180, icon: "🛡️", label: "MERKEZ SAVUNMA" },
-            { lat: 40.9798, lng: 28.7195, icon: "⚡", label: "PTT ENERJİ" }
-        ];
+        function selectChar(type) {
+            tg.HapticFeedback.notificationOccurred('success');
+            alert(type + " seçildi. Avcılar sektörüne aktarılıyorsun...");
+            showScreen('map-screen');
+        }
 
-        points.forEach(p => {
-            let m = L.marker([p.lat, p.lng], {
-                icon: L.divIcon({ html: `<div style="font-size:30px; text-shadow: 0 0 10px #0ff;">${p.icon}</div>` })
-            }).addTo(map);
-
-            m.on('click', () => {
-                tg.HapticFeedback.impactOccurred('heavy'); // Titreşim
-                document.getElementById('info').innerText = `SIZMA BAŞLATILDI: ${p.label}`;
-                tg.showAlert(`${p.label} siber saldırı altında!`);
-            });
-        });
+        function initMap() {
+            var map = L.map('map', { zoomControl: false }).setView([40.9800, 28.7175], 16);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+            L.marker([40.9805, 28.7160]).addTo(map).bindPopup("Enerji İstasyonu");
+        }
     </script>
 </body>
 </html>
