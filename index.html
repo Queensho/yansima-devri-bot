@@ -118,6 +118,39 @@
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
             L.marker([40.9805, 28.7160]).addTo(map).bindPopup("Enerji Kaynağı");
         }
+
+        function selectChar(role) {
+    tg.HapticFeedback.notificationOccurred('success');
+    
+    // Karakteri yerel hafızaya kaydet
+    localStorage.setItem('selectedRole', role);
+    localStorage.setItem('playerCredits', 100);
+
+    // Seçim ekranını kapat, yükleme ekranını aç
+    document.getElementById('char-screen').innerHTML = `
+        <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh;">
+            <h2 style="color:#00ffd0; text-align:center; animation: blink 1s infinite;">
+                SİSTEME SIZILIYOR...<br>PROFIL: ${role.toUpperCase()}
+            </h2>
+            <div style="width:80%; height:10px; border:1px solid #00ffd0; margin-top:20px;">
+                <div style="width:0%; height:100%; background:#00ffd0; transition: width 2s;" id="load-bar"></div>
+            </div>
+        </div>
+    `;
+
+    // 2 saniye sonra yükleme barını doldur ve haritaya geç
+    setTimeout(() => {
+        document.getElementById('load-bar').style.width = "100%";
+        setTimeout(() => {
+            showScreen('map-screen');
+            startTutorial(); // İlk eğitim görevini başlat
+        }, 1000);
+    }, 100);
+}
+
+function startTutorial() {
+    tg.showAlert("OPERASYON BAŞLADI!\n\nGezgin olarak görevin haritadaki parlayan enerji noktalarını toplamak. Medicana Üssü'ne yaklaşarak başla.");
+}
     </script>
 </body>
 </html>
